@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Correlacionando los Humanismos - Línea de tiempo</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Icon library (Feather via CDN) -->
+<script src="https://unpkg.com/feather-icons"></script>
+
+<!-- Libraries to generate Word & PPTX (kept from your original) -->
+<script src="https://unpkg.com/docx@8.5.0/dist/docx.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.js"></script>
+
+<!-- html2canvas & jsPDF for PDF export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  :root {
+    --primary-color: #3a7bd5;
+    --secondary-color: #009fff;
+    --bg: #f6f7fb;
+    --text: #222;
+    --card: #ffffff;
+    --muted: #666;
+    --shadow: 0 8px 24px rgba(10,10,20,0.08);
+    --line-grad: linear-gradient(180deg,#6a11cb 0%, #2575fc 100%);
+    --accent-1: #e9f0ff;
+    --accent-2: #f0fff8;
+    --radius: 12px;
+  }
+
+  /* Dark theme variables (toggle by class on <html>) */
+  html.dark {
+    --bg: #0f1720;
+    --text: #e6eef8;
+    --card: #0b1217;
+    --muted: #9fb0c8;
+    --shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Poppins', Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 28px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 18px; }
+  h1 { font-size: 2.35rem; color: var(--primary-color); margin-bottom: 4px; }
+  header p { color: var(--muted); font-size: 1rem; }
+
+  /* Controls */
+  .controls {
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    align-items:center;
+    margin: 18px 0 30px;
+    flex-wrap:wrap;
+  }
+  .controls .left {
+    display:flex; gap:10px; align-items:center;
+  }
+  .btn {
+    background: var(--primary-color);
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight:600;
+    box-shadow: var(--shadow);
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+  }
+  .btn.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; box-shadow:none; }
+
+  /* Search & theme */
+  .search {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.06);
+    min-width: 260px;
+    background:var(--card);
+    color:var(--text);
+    box-shadow: var(--shadow);
+  }
+  .theme-switch {
+    display:flex; align-items:center; gap:8px;
+    font-weight:600; color:var(--muted);
+  }
+  .theme-toggle {
+    width:44px; height:24px; background:linear-gradient(90deg,#ddd,#bbb); border-radius:999px; position:relative; cursor:pointer;
+  }
+  .theme-toggle .knob { position:absolute; top:3px; left:3px; width:18px; height:18px; background:#fff; border-radius:50%; transition:left .22s ease; box-shadow:0 6px 18px rgba(0,0,0,0.12); }
+  html.dark .theme-toggle { background:linear-gradient(90deg,#253243,#17202a); }
+  html.dark .theme-toggle .knob { left:23px; }
+
+  /* Timeline */
+  .timeline {
+    position:relative;
+    margin-top: 10px;
+    padding: 24px 0 48px;
+  }
+  .timeline::after {
+    content:'';
+    position:absolute;
+    left:50%;
+    top:0;
+    bottom:0;
+    width:6px;
+    background: var(--line-grad);
+    transform:translateX(-50%);
+    border-radius:6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  }
+
+  .event {
+    position:relative;
+    width:46%;
+    background:var(--card);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    margin:22px 0;
+    box-shadow: var(--shadow);
+    transition: transform .35s ease, box-shadow .35s ease, opacity .45s ease;
+    opacity:0; transform: translateY(24px) scale(.995);
+    cursor:pointer;
+  }
+  .event.is-visible { opacity:1; transform: translateY(0) scale(1); }
+  .event:hover { transform: translateY(-6px) scale(1.02); }
+
+  .left { left:0; }
+  .right { left:54%; }
+  .event .meta { display:flex; gap:10px; align-items:center; margin-bottom:8px; }
+  .event .date { font-weight:700; color:var(--primary-color); font-size:1rem; }
+  .event .title { font-size:1.12rem; font-weight:700; margin-bottom:8px; display:flex; gap:10px; align-items:center; }
+  .event .desc { color:var(--muted); line-height:1.5; font-size:0.96rem; }
+  .event .persons { margin-top:10px; font-size:0.9rem; color:var(--muted); }
+
+  .dot {
+    width:20px; height:20px; border-radius:50%;
+    position:absolute; left:50%; transform:translate(-50%,-50%);
+    background:var(--bg); border:4px solid var(--primary-color); z-index:2;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    transition: transform .25s ease, background .25s ease;
+  }
+  .event:hover ~ .dot { transform:translate(-50%,-50%) scale(1.08); }
+
+  /* small image inside event */
+  .event .thumb {
+    float:right; width:80px; height:60px; border-radius:8px; object-fit:cover; margin-left:12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+
+  /* Modal */
+  .modal {
+    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+    background:rgba(0,0,0,0.55); z-index:120; opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .modal.show { opacity:1; pointer-events:auto; }
+  .modal .card {
+    width:min(920px,94%); background:var(--card); padding:22px; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,0.35);
+    transform:translateY(24px); transition:transform .28s ease;
+  }
+  .modal.show .card { transform:translateY(0); }
+
+  .card h2 { color:var(--primary-color); margin-bottom:8px; }
+  .card p { color:var(--muted); line-height:1.5; }
+
+  .close-btn { display:inline-block; margin-top:12px; padding:10px 14px; border-radius:10px; text-decoration:none; background:var(--primary-color); color:white; font-weight:700; }
+  .close-btn:focus { outline:3px solid rgba(58,123,213,0.2); }
+
+  /* Responsive */
+  @media (max-width:900px) {
+    .event, .right { left:40px !important; width:calc(100% - 80px) !important; }
+    .timeline::after { left:20px; }
+    .dot { left:20px; }
+    .event .thumb { width:70px; height:52px; }
+  }
+
+  /* small utility */
+  .muted { color:var(--muted); font-size:0.9rem; }
+  .spaced { margin-top:12px; }
+  footer { text-align:center; font-size:0.85rem; color:var(--muted); margin-top:26px; }
+</style>
+</head>
+<body>
+
+<!-- Welcome modal (keeps same content but improved structure + localStorage to remember) -->
+<div id="welcomeModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+  <div class="card" role="document">
+    <h2 id="welcomeTitle">Correlacionando los Humanismos</h2>
+    <p><strong>Profesor:</strong> Yulieth Erisbey Agudelo Carmona</p>
+    <p><strong>Materia:</strong> Cátedra IU Digital: Humanismo y Ciudadanía Digital - PREICA2502B010144</p>
+    <p><strong>Tema:</strong> Tema 3 - Humanismo digital: un nuevo renacimiento</p>
+    <p><strong>Estudiante:</strong> Albert Daniel Gaviria Zapata</p>
+    <p><strong>Institución:</strong> IU DIGITAL - Institución Universitaria Digital de Antioquia</p>
+    <p><strong>Año:</strong> 2025</p>
+    <div class="spaced">
+      <a class="close-btn" href="#" id="closeWelcome">Comenzar</a>
+      <label style="margin-left:12px; font-size:0.9rem;">
+        <input type="checkbox" id="dontShow" /> No mostrar de nuevo
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="appRoot">
+  <header>
+    <h1>Correlacionando los Humanismos</h1>
+    <p>Línea de tiempo interactiva, inmersiva y accesible</p>
+  </header>
+
+  <div class="controls" role="toolbar" aria-label="Controles principales">
+    <div class="left">
+      <input id="searchInput" class="search" type="search" placeholder="Buscar evento, personaje o palabra clave..." aria-label="Buscar eventos"/>
+      <button class="btn" id="downloadPdfBtn" title="Exportar la línea de tiempo como PDF"><span data-feather="file-text"></span> Exportar PDF</button>
+      <button class="btn" id="wordBtn" title="Generar documento Word"><span data-feather="file"></span> Word</button>
+      <button class="btn" id="pptxBtn" title="Generar presentación"><span data-feather="file-plus"></span> PPTX</button>
+    </div>
+
+    <div style="display:flex; gap:12px; align-items:center;">
+      <div class="theme-switch" title="Cambiar tema">
+        <div class="theme-toggle" id="themeToggle" role="switch" aria-checked="false" tabindex="0">
+          <div class="knob" aria-hidden="true"></div>
+        </div>
+        <span class="muted">Modo oscuro</span>
+      </div>
+      <button class="btn secondary" id="shareBtn" title="Compartir enlace / copiar al portapapeles"><span data-feather="share-2"></span> Compartir</button>
+    </div>
+  </div>
+
+  <section class="timeline" id="timeline" aria-live="polite" aria-label="Línea de tiempo de los cuatro humanismos">
+    <!-- Events will be injected here by JS -->
+  </section>
+
+  <footer>
+    Hecho por Albert Daniel Gaviria Zapata — IU DIGITAL (2025). Haz clic en una tarjeta para ver más detalles.
+  </footer>
+</div>
+
+<!-- Event modal -->
+<div id="eventModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
+  <div class="card" role="document">
+    <h2 id="eventTitle"></h2>
+    <p id="eventDate" style="font-weight:700; color:var(--primary-color)"></p>
+    <p id="eventDesc"></p>
+    <p id="eventPersons" class="muted"></p>
+    <div style="margin-top:12px;">
+      <a class="close-btn" href="#" id="closeEventBtn">Cerrar</a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ------------- Data (editable) ------------- 
+   Cada evento tiene: date, title, description, persons, img, color (accent)
+   Edita o agrega eventos en este arreglo sin tocar el resto del código.
+*/
+const events = [
+  {
+    id: 0,
+    date: "-500 a.C.",
+    title: "Humanismo Clásico",
+    description: "Surge en Grecia y Roma. El hombre es el centro del conocimiento; se desarrollan la democracia, la filosofía y las artes clásicas.",
+    persons: "Sócrates, Platón, Aristóteles, Cicerón.",
+    img: "https://raw.githubusercontent.com/DanielGz21/UI_Digital_Dani/main/Humanismo_Clasico.jpg",
+    accent: "#F6E8D9"
+  },
+  {
+    id: 1,
+    date: "1492",
+    title: "Humanismo Renacentista",
+    description: "Renacer de las artes y las ciencias; auge del antropocentrismo, la imprenta y los grandes descubrimientos geográficos.",
+    persons: "Leonardo da Vinci, Miguel Ángel, Erasmo de Rotterdam, Maquiavelo.",
+    img: "https://raw.githubusercontent.com/DanielGz21/UI_Digital_Dani/main/Humanismo_Renacentista.jpg",
+    accent: "#F3E8FF"
+  },
+  {
+    id: 2,
+    date: "1789",
+    title: "Humanismo Ilustrado",
+    description: "Movimiento basado en la razón, la igualdad y la libertad; la Enciclopedia y la Revolución Francesa transforman la política y la sociedad.",
+    persons: "Voltaire, Rousseau, Montesquieu, Kant.",
+    img: "https://raw.githubusercontent.com/DanielGz21/UI_Digital_Dani/main/Humanismo_Ilustrado.jpg",
+    accent: "#E8F5FF"
+  },
+  {
+    id: 3,
+    date: "1948",
+    title: "Humanismo Contemporáneo",
+    description: "Énfasis en los derechos humanos, justicia social, avances científicos y pluralidad cultural; la Declaración Universal de los Derechos Humanos simboliza este periodo.",
+    persons: "Karl Marx, Albert Einstein, Simone de Beauvoir, Martin Luther King.",
+    img: "https://raw.githubusercontent.com/DanielGz21/UI_Digital_Dani/main/Humanismo_Contempor%C3%A1neo.jpg",
+    accent: "#E8FFF4"
+  }
+];
+
+/* ------------- DOM references ------------- */
+const timelineEl = document.getElementById('timeline');
+const searchInput = document.getElementById('searchInput');
+const themeToggle = document.getElementById('themeToggle');
+const shareBtn = document.getElementById('shareBtn');
+const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+const wordBtn = document.getElementById('wordBtn');
+const pptxBtn = document.getElementById('pptxBtn');
+
+const eventModal = document.getElementById('eventModal');
+const welcomeModal = document.getElementById('welcomeModal');
+const closeWelcome = document.getElementById('closeWelcome');
+const dontShow = document.getElementById('dontShow');
+const closeEventBtn = document.getElementById('closeEventBtn');
+
+/* ------------- Utilities ------------- */
+function el(tag, props = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const k in props) {
+    if (k === 'class') node.className = props[k];
+    else if (k === 'html') node.innerHTML = props[k];
+    else node.setAttribute(k, props[k]);
+  }
+  (Array.isArray(children) ? children : [children]).forEach(c => { if (c) node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
+  return node;
+}
+
+/* ------------- Render timeline (dynamic) ------------- */
+function renderTimeline(list) {
+  timelineEl.innerHTML = '';
+  list.forEach((ev,i) => {
+    const side = (i % 2 === 0) ? 'left' : 'right';
+    const eventCard = el('article', { class: `event ${side}`, tabindex: 0, 'data-id': ev.id, role: 'button', 'aria-label': `${ev.title}, ${ev.date}` });
+
+    // small image
+    const img = el('img', { src: ev.img, alt: `${ev.title} imagen`, class: 'thumb' });
+    eventCard.appendChild(img);
+
+    const meta = el('div', { class: 'meta' }, []);
+    const date = el('div', { class: 'date' }, ev.date);
+    meta.appendChild(date);
+    eventCard.appendChild(meta);
+
+    const title = el('div', { class: 'title', html: `<svg width="18" height="18" aria-hidden="true" focusable="false" style="vertical-align:middle;margin-right:6px;"><use></use></svg>${ev.title}`});
+    eventCard.appendChild(title);
+
+    const desc = el('div', { class: 'desc' }, ev.description);
+    eventCard.appendChild(desc);
+
+    const persons = el('div', { class: 'persons' }, `Personajes: ${ev.persons}`);
+    eventCard.appendChild(persons);
+
+    // a dot element is placed for each event (position handled by CSS; visual)
+    const dot = el('div', { class: 'dot', 'aria-hidden': true }, []);
+    // append to timeline container (so dot overlays center line); use clone for each
+    timelineEl.appendChild(eventCard);
+    timelineEl.appendChild(dot);
+
+    // event handlers
+    eventCard.addEventListener('click', () => openModal(ev.id));
+    eventCard.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModal(ev.id); } });
+
+    // set accent background for small thumb border (subtle)
+    img.style.border = `4px solid ${ev.accent || '#fff'}`;
+  });
+
+  // init intersection observer to animate
+  observeTimeline();
+}
+
+/* ------------- Modal handling ------------- */
+function openModal(id) {
+  const ev = events.find(x => x.id === id);
+  if (!ev) return;
+  document.getElementById('eventTitle').innerText = ev.title;
+  document.getElementById('eventDate').innerText = ev.date;
+  document.getElementById('eventDesc').innerText = ev.description;
+  document.getElementById('eventPersons').innerText = `Personajes: ${ev.persons}`;
+  eventModal.classList.add('show');
+  // trap focus
+  closeEventBtn.focus();
+}
+function closeEventModal(e) {
+  if (e.target === eventModal || e.target.id === 'closeEventBtn') {
+    eventModal.classList.remove('show');
+  }
+}
+closeEventBtn.addEventListener('click', (e)=>{ e.preventDefault(); closeEventModal({ target: eventModal }); });
+
+eventModal.addEventListener('click', (e)=> {
+  if (e.target === eventModal) closeEventModal({ target: eventModal });
+});
+
+/* ------------- IntersectionObserver for animations ------------- */
+function observeTimeline() {
+  const timelineEvents = document.querySelectorAll('.event');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+      }
+    });
+  }, { threshold: 0.35 });
+  timelineEvents.forEach(ev => observer.observe(ev));
+}
+
+/* ------------- Search (filter) ------------- */
+searchInput.addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) { renderTimeline(events); return; }
+  const filtered = events.filter(ev => {
+    return (ev.title + ' ' + ev.description + ' ' + ev.persons + ' ' + ev.date).toLowerCase().includes(q);
+  });
+  renderTimeline(filtered);
+});
+
+/* ------------- Theme toggle + persist ------------- */
+function setTheme(isDark) {
+  if (isDark) {
+    document.documentElement.classList.add('dark');
+    themeToggle.setAttribute('aria-checked','true');
+  } else {
+    document.documentElement.classList.remove('dark');
+    themeToggle.setAttribute('aria-checked','false');
+  }
+  localStorage.setItem('humanismos_theme_dark', isDark ? '1':'0');
+}
+themeToggle.addEventListener('click', ()=> {
+  const isDark = !document.documentElement.classList.contains('dark');
+  setTheme(isDark);
+});
+themeToggle.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); themeToggle.click(); } });
+// restore theme
+setTheme(localStorage.getItem('humanismos_theme_dark') === '1');
+
+/* ------------- Welcome modal persistence ------------- */
+function showWelcomeIfNeeded() {
+  const hide = localStorage.getItem('humanismos_hide_welcome');
+  if (hide === '1') {
+    welcomeModal.classList.remove('show');
+  } else {
+    welcomeModal.classList.add('show');
+  }
+}
+closeWelcome.addEventListener('click', (e) => {
+  e.preventDefault();
+  if (dontShow.checked) localStorage.setItem('humanismos_hide_welcome','1');
+  welcomeModal.classList.remove('show');
+});
+showWelcomeIfNeeded();
+
+/* ------------- Share (copy link) ------------- */
+shareBtn.addEventListener('click', async () => {
+  const url = location.href;
+  try {
+    await navigator.clipboard.writeText(url);
+    alert('Enlace copiado al portapapeles. Pégalo en tu correo o chat para compartir.');
+  } catch (err) {
+    prompt('Copia el enlace manualmente:', url);
+  }
+});
+
+/* ------------- Export to PDF (html2canvas + jsPDF) ------------- */
+downloadPdfBtn.addEventListener('click', async () => {
+  downloadPdfBtn.disabled = true;
+  downloadPdfBtn.textContent = 'Preparando PDF...';
+  try {
+    const node = document.getElementById('timeline');
+    // expand all events (make visible) for clear capture
+    document.querySelectorAll('.event').forEach(e=> e.classList.add('is-visible'));
+    await new Promise(r => setTimeout(r, 220)); // allow render
+    
+    const scale = 2;
+    const canvas = await html2canvas(node, { scale: scale, useCORS: true, logging:false, backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || null });
+    const imgData = canvas.toDataURL('image/png');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    // fit image to page width with margins
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const imgWidth = pageWidth - 40;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    let y = 20;
+    // if tall, split into multiple pages
+    if (imgHeight <= pageHeight - 40) {
+      pdf.addImage(imgData, 'PNG', 20, y, imgWidth, imgHeight);
+    } else {
+      // split by drawing slices
+      const sliceHeight = Math.floor((canvas.width * (pageHeight - 40)) / imgWidth);
+      let remaining = canvas.height;
+      let offsetY = 0;
+      const tmpCanvas = document.createElement('canvas');
+      const tmpCtx = tmpCanvas.getContext('2d');
+      tmpCanvas.width = canvas.width;
+      tmpCanvas.height = sliceHeight;
+      while (remaining > 0) {
+        tmpCtx.clearRect(0,0,tmpCanvas.width,tmpCanvas.height);
+        tmpCtx.drawImage(canvas, 0, offsetY, tmpCanvas.width, tmpCanvas.height, 0, 0, tmpCanvas.width, tmpCanvas.height);
+        const chunkData = tmpCanvas.toDataURL('image/png');
+        pdf.addImage(chunkData, 'PNG', 20, 20, imgWidth, (tmpCanvas.height * imgWidth) / tmpCanvas.width);
+        remaining -= sliceHeight;
+        offsetY += sliceHeight;
+        if (remaining > 0) pdf.addPage();
+      }
+    }
+    pdf.save('Linea_Tiempo_Humanismos.pdf');
+  } catch (err) {
+    console.error(err);
+    alert('Ocurrió un error al generar el PDF. Intenta nuevamente.');
+  } finally {
+    downloadPdfBtn.disabled = false;
+    downloadPdfBtn.textContent = 'Exportar PDF';
+  }
+});
+
+/* ------------- Generate Word (docx) using docx.js - similar to original but client-side ------------- */
+wordBtn.addEventListener('click', async () => {
+  wordBtn.disabled = true;
+  wordBtn.textContent = 'Generando...';
+  try {
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
+    const doc = new Document({ sections: [] });
+
+    // portada
+    doc.addSection({
+      properties: {},
+      children: [
+        new Paragraph({ text: "Correlacionando los Humanismos", heading: HeadingLevel.TITLE }),
+        new Paragraph({}),
+        new Paragraph({ children: [ new TextRun({ text: "Profesor: ", bold: true }), new TextRun("Yulieth Erisbey Agudelo Carmona")] }),
+        new Paragraph({ children: [ new TextRun({ text: "Materia: ", bold: true }), new TextRun("Cátedra IU Digital: Humanismo y Ciudadanía Digital - PREICA2502B010144")] }),
+        new Paragraph({ children: [ new TextRun({ text: "Estudiante: ", bold: true }), new TextRun("Albert Daniel Gaviria Zapata")] }),
+        new Paragraph({ children: [ new TextRun({ text: "Año: ", bold: true }), new TextRun("2025")] })
+      ]
+    });
+
+    // eventos
+    events.forEach(ev => {
+      doc.addSection({
+        children: [
+          new Paragraph({ text: ev.title, heading: HeadingLevel.HEADING_1 }),
+          new Paragraph({ children: [ new TextRun({ text: "Fecha: ", bold:true }), new TextRun(ev.date) ] }),
+          new Paragraph(ev.description),
+          new Paragraph({ children: [ new TextRun({ text: "Personajes: ", bold:true }), new TextRun(ev.persons) ] }),
+        ]
+      });
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'Linea_Tiempo_Humanismos.docx';
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error(err);
+    alert('Error generando Word');
+  } finally {
+    wordBtn.disabled = false;
+    wordBtn.textContent = 'Word';
+  }
+});
+
+/* ------------- Generate PPTX (pptxgenjs) ------------- */
+pptxBtn.addEventListener('click', async () => {
+  pptxBtn.disabled = true;
+  pptxBtn.textContent = 'Generando...';
+  try {
+    const pptx = new PptxGenJS();
+    pptx.layout = 'LAYOUT_WIDE';
+
+    // title slide
+    let titleSlide = pptx.addSlide();
+    titleSlide.addText('Correlacionando los Humanismos', { x:0.5, y:0.8, fontSize:40, bold:true, color:'3A7BD5' });
+    titleSlide.addText('Albert Daniel Gaviria Zapata - Cátedra IU Digital', { x:0.5, y:2.0, fontSize:14, color:'333333' });
+
+    // content slides
+    events.forEach(ev => {
+      let slide = pptx.addSlide();
+      slide.addText(ev.title, { x:0.5, y:0.5, fontSize:28, bold:true, color:'3A7BD5' });
+      slide.addText(ev.date, { x:0.5, y:1.2, fontSize:16, bold:true, color:'009FFF' });
+      slide.addImage({ url: ev.img, x:7.6, y:0.6, w:2.8, h:1.7 });
+      slide.addText([
+        { text: 'Descripción:', options: { bold:true } },
+        { text: ev.description, options: { breakLine:true } },
+        { text: 'Personajes:', options: { bold:true, breakLine:true } },
+        { text: ev.persons, options: { breakLine:true } }
+      ], { x:0.5, y:2.2, w:8.5, h:3.6, fontSize:12, bullet:true });
+    });
+
+    await pptx.writeFile({ fileName: 'Linea_Tiempo_Humanismos.pptx' });
+  } catch (err) {
+    console.error(err);
+    alert('Error generando PPTX');
+  } finally {
+    pptxBtn.disabled = false;
+    pptxBtn.textContent = 'PPTX';
+  }
+});
+
+/* ------------- Accessibility: close modals with ESC ------------- */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (eventModal.classList.contains('show')) eventModal.classList.remove('show');
+    if (welcomeModal.classList.contains('show')) welcomeModal.classList.remove('show');
+  }
+});
+
+/* ------------- Initial render ------------- */
+renderTimeline(events);
+// feather icons replacement
+feather.replace();
+</script>
+</body>
+</html>
