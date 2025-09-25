@@ -25,7 +25,7 @@ Para ejecutar este proyecto en tu entorno local, sigue estos sencillos pasos:
 
 1.  **Clona el repositorio:**
     ```bash
-    git clone <URL-DE-TU-REPOSITORIO>
+    git clone <https://github.com/DanielGz21/UI_Digital_Dani.git>
     ```
 2.  **Navega a la carpeta del proyecto:**
     ```bash
