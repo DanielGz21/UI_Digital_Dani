@@ -1,8 +1,7 @@
-import { useState } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import Counter from "./components/Counter";
 import Home from "./pages/Home";
+import Quiz from "./components/Quiz"; // Importa el nuevo componente
 
 function App() {
   return (
@@ -10,7 +9,7 @@ function App() {
       <Navbar />
       <main>
         <Home />
-        <Counter />
+        <Quiz /> {/* Usa el componente Quiz aquí */}
       </main>
       <Footer />
     </div>
