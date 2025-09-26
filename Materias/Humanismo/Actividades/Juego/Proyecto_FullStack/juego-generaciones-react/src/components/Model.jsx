@@ -13,6 +13,6 @@ function Model({ path, ...props }) {
 
 // Pre-cargamos el modelo para optimizar el rendimiento
 // Reemplaza la ruta si tu modelo se llama diferente
-useGLTF.preload('/models/nokia_phone.glb');
+useGLTF.preload('/models/nokia-3310.glb');
 
 export default Model;

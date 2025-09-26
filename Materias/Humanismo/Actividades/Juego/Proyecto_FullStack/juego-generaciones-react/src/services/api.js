@@ -4,7 +4,7 @@ import axios from 'axios';
 // Creamos una instancia de axios con la URL base de nuestro backend.
 // Esto nos ahorra tener que escribirla en cada petición.
 const apiClient = axios.create({
-  baseURL: 'http://localhost:5001/api', // La URL de tu servidor backend
+  baseURL: '/api', // La URL de tu servidor backend
 });
 
 // Función para registrar un nuevo usuario

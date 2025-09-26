@@ -2,6 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
 // Importamos nuestras rutas
 const authRoutes = require('./routes/authRoutes');
@@ -17,6 +18,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, '../juego-generaciones-react/dist')));
+
 // Definimos las rutas de nuestra API
 app.use('/api/auth', authRoutes);
 app.use('/api', scoreRoutes);
@@ -24,9 +28,9 @@ app.use('/api/timeline', timelineRoutes);
 app.use('/api/dilemmas', dilemmaRoutes);
 app.use('/api/ai', aiRoutes); // Añade la nueva ruta
 
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.send('API del Juego de Generaciones funcionando correctamente 🚀');
+// Manejar rutas del frontend (SPA)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../juego-generaciones-react/dist/index.html'));
 });
 
 app.listen(PORT, () => {
