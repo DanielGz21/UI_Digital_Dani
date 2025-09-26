@@ -1,5 +1,10 @@
 /* src/styles.css */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans text-gray-800;
+  }
+}
